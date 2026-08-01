@@ -16,6 +16,12 @@ function segment(x1, y1, x2, y2, width, color) {
   ctx.stroke();
 }
 
+function jointedArm(shoulderX, shoulderY, elbowX, elbowY, handX, handY, width, color, glove) {
+  segment(shoulderX, shoulderY, elbowX, elbowY, width, color);
+  segment(elbowX, elbowY, handX, handY, width * .88, color);
+  hand(handX, handY, glove);
+}
+
 function hand(x, y, color) {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -44,10 +50,11 @@ function drawActor(a) {
   const cycle = a.anim;
   const bob = walking ? Math.sin(cycle) * 3 : Math.sin(cycle * .5) * 1.5;
   const stride = walking ? Math.sin(cycle) * 12 : 0;
-  const action = a.attackDuration ? 1 - a.attackTimer / a.attackDuration : 0;
-  const reach = striking ? easeOut(clamp(action, 0, 1)) : 0;
+  const action = a.attackDuration ? clamp(1 - a.attackTimer / a.attackDuration, 0, 1) : 0;
+  const punchReach = striking ? Math.sin(action * Math.PI) : 0;
   const kickArc = kicking ? Math.sin(clamp(action * 1.25, 0, 1) * Math.PI) : 0;
   const spin = powered ? Math.sin(action * Math.PI * 2) : 0;
+  const guardSway = walking ? Math.sin(cycle * .75) * 2.5 : Math.sin(cycle * .45) * 1.2;
 
   ctx.save();
   ctx.translate(px, py);
@@ -102,27 +109,39 @@ function drawActor(a) {
     foot(18 + stride, -1, a.accent);
   }
 
+  const frontShoulder = { x: 17, y: -94 };
+  const rearShoulder = { x: -18, y: -94 };
+  const frontGuardElbow = { x: 31, y: -79 + guardSway };
+  const frontGuardHand = { x: 13, y: -70 + guardSway };
+  const rearGuardElbow = { x: -31, y: -83 - guardSway };
+  const rearGuardHand = { x: -8, y: -75 - guardSway };
+
   if (striking) {
-    segment(17, -93, 42 + reach * 56, -86 - reach * 5, 16, a.color);
-    hand(44 + reach * 58, -86 - reach * 5, a.accent);
-    segment(-18, -93, -30, -61, 15, a.color);
-    hand(-31, -58, a.accent);
+    const windup = clamp(action / .22, 0, 1);
+    const extendedHandX = 104;
+    const extendedHandY = -92;
+    const frontElbowX = lerp(frontGuardElbow.x - 5 * windup, 60, punchReach);
+    const frontElbowY = lerp(frontGuardElbow.y + 3 * windup, -92, punchReach);
+    const frontHandX = lerp(frontGuardHand.x - 9 * windup, extendedHandX, punchReach);
+    const frontHandY = lerp(frontGuardHand.y + 4 * windup, extendedHandY, punchReach);
+    jointedArm(frontShoulder.x, frontShoulder.y, frontElbowX, frontElbowY, frontHandX, frontHandY, 16, a.color, a.accent);
+    jointedArm(rearShoulder.x, rearShoulder.y, rearGuardElbow.x, rearGuardElbow.y, rearGuardHand.x, rearGuardHand.y, 15, a.color, a.accent);
   } else if (powered) {
-    segment(18, -94, 55 + spin * 45, -70, 16, a.color);
-    hand(58 + spin * 45, -68, a.accent);
-    segment(-18, -94, -50 - spin * 45, -72, 16, a.color);
-    hand(-52 - spin * 45, -70, a.accent);
+    const rightHandX = 48 + spin * 45;
+    const leftHandX = -45 - spin * 45;
+    jointedArm(18, -94, 35 + spin * 18, -88, rightHandX, -70, 16, a.color, a.accent);
+    jointedArm(-18, -94, -34 - spin * 18, -88, leftHandX, -72, 15, a.color, a.accent);
   } else {
-    segment(17, -94, 29, -64 + Math.sin(cycle * .7) * 4, 16, a.color);
-    hand(30, -61, a.accent);
-    segment(-18, -94, -30, -67 - Math.sin(cycle * .7) * 4, 15, a.color);
-    hand(-30, -63, a.accent);
+    jointedArm(frontShoulder.x, frontShoulder.y, frontGuardElbow.x, frontGuardElbow.y, frontGuardHand.x, frontGuardHand.y, 16, a.color, a.accent);
+    jointedArm(rearShoulder.x, rearShoulder.y, rearGuardElbow.x, rearGuardElbow.y, rearGuardHand.x, rearGuardHand.y, 15, a.color, a.accent);
   }
 
   if (a.weapon) {
+    const weaponHandX = striking ? lerp(frontGuardHand.x, 104, punchReach) : frontGuardHand.x;
+    const weaponHandY = striking ? lerp(frontGuardHand.y, -92, punchReach) : frontGuardHand.y;
     ctx.save();
-    ctx.translate(30, -62);
-    ctx.rotate(striking ? -.55 : -.2);
+    ctx.translate(weaponHandX, weaponHandY);
+    ctx.rotate(striking ? -.15 : -.55);
     ctx.fillStyle = a.weapon === 'staff' ? '#cda96b' : a.weapon === 'knife' ? '#d7f2ff' : a.weapon === 'pipe' ? '#a6bac4' : '#8c5a35';
     roundRect(0, -4, a.weapon === 'knife' ? 42 : 68, 8, 4, true);
     if (a.weapon === 'knife') {
@@ -233,6 +252,24 @@ function loop(now) {
   draw();
   requestAnimationFrame(loop);
 }
+
+const gameShell = document.getElementById('game-shell');
+['gesturestart', 'gesturechange', 'gestureend'].forEach(type => {
+  document.addEventListener(type, event => event.preventDefault(), { passive: false });
+});
+
+document.addEventListener('touchmove', event => {
+  if (gameShell.contains(event.target)) event.preventDefault();
+}, { passive: false });
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', event => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 350) event.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
+document.addEventListener('dblclick', event => event.preventDefault(), { passive: false });
 
 requestAnimationFrame(loop);
 addEventListener('contextmenu', event => event.preventDefault());
