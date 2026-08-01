@@ -29,18 +29,107 @@ const easeOut = t => 1 - Math.pow(1 - t, 3);
 
 class AudioEngine {
   constructor() { this.ctx = null; this.enabled = true; }
-  init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (this.ctx.state === 'suspended') this.ctx.resume(); }
-  tone(freq, duration=.08, type='square', volume=.04, slide=0) {
-    if (!this.enabled || !this.ctx) return;
-    const now = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
-    o.type = type; o.frequency.setValueAtTime(freq, now); o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), now + duration);
-    g.gain.setValueAtTime(volume, now); g.gain.exponentialRampToValueAtTime(.0001, now + duration);
-    o.connect(g).connect(this.ctx.destination); o.start(now); o.stop(now + duration);
+  init() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
   }
-  hit(strong=false) { this.tone(strong ? 92 : 145, strong ? .13 : .07, 'sawtooth', strong ? .07 : .035, strong ? -42 : -20); }
-  whoosh() { this.tone(260, .09, 'triangle', .025, 220); }
-  pickup() { this.tone(520,.08,'sine',.03,280); setTimeout(()=>this.tone(780,.12,'sine',.025,220),60); }
-  ko() { this.tone(110,.28,'sawtooth',.07,-55); }
+  tone(freq, duration=.08, type='square', volume=.04, slide=0, delay=0) {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime + delay;
+    const oscillator = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(Math.max(30, freq), now);
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), now + duration);
+    gain.gain.setValueAtTime(Math.max(.0001, volume), now);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+    oscillator.connect(gain).connect(this.ctx.destination);
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+  }
+  noise(duration=.07, volume=.025, frequency=900, delay=0) {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime + delay;
+    const frameCount = Math.max(1, Math.floor(this.ctx.sampleRate * duration));
+    const buffer = this.ctx.createBuffer(1, frameCount, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < frameCount; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / frameCount);
+    const source = this.ctx.createBufferSource();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+    source.buffer = buffer;
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(frequency, now);
+    filter.Q.value = .8;
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+    source.connect(filter).connect(gain).connect(this.ctx.destination);
+    source.start(now);
+    source.stop(now + duration);
+  }
+  attack(kind='punch') {
+    if (kind === 'punch') {
+      this.noise(.045, .018, 1250);
+      this.tone(250, .065, 'triangle', .018, 190);
+    } else if (kind === 'kick') {
+      this.noise(.075, .028, 720);
+      this.tone(170, .1, 'sine', .025, -65);
+    } else if (kind === 'uppercut') {
+      this.noise(.11, .035, 1500);
+      this.tone(150, .16, 'sawtooth', .035, 520);
+    } else if (kind === 'flyingKick') {
+      this.noise(.14, .04, 980);
+      this.tone(220, .18, 'triangle', .035, -95);
+    } else if (kind === 'special') {
+      this.noise(.2, .045, 1800);
+      this.tone(115, .28, 'sawtooth', .055, 760);
+      this.tone(420, .22, 'triangle', .026, -180, .04);
+    }
+  }
+  impact(kind='punch', strong=false, weapon=null) {
+    if (weapon) {
+      this.noise(strong ? .13 : .09, strong ? .06 : .04, weapon === 'staff' ? 1150 : 1650);
+      this.tone(weapon === 'bat' ? 105 : 145, strong ? .18 : .11, 'square', strong ? .065 : .042, -55);
+      return;
+    }
+    if (kind === 'kick' || kind === 'flyingKick') {
+      this.noise(strong ? .14 : .1, strong ? .065 : .045, 560);
+      this.tone(strong ? 72 : 92, strong ? .2 : .13, 'sine', strong ? .08 : .055, -38);
+    } else if (kind === 'uppercut') {
+      this.noise(.13, .058, 1250);
+      this.tone(90, .18, 'sawtooth', .07, 260);
+    } else if (kind === 'special') {
+      this.noise(.18, .075, 1700);
+      this.tone(64, .28, 'sawtooth', .085, -26);
+      this.tone(360, .2, 'triangle', .035, 260, .02);
+    } else {
+      this.noise(strong ? .11 : .07, strong ? .05 : .035, 920);
+      this.tone(strong ? 82 : 118, strong ? .16 : .095, 'square', strong ? .065 : .042, -34);
+    }
+  }
+  block() {
+    this.noise(.075, .035, 2100);
+    this.tone(310, .09, 'square', .028, -120);
+  }
+  hurt(isPlayer=false) {
+    this.tone(isPlayer ? 155 : 185, .13, 'sawtooth', isPlayer ? .04 : .025, -80, .015);
+  }
+  jump() {
+    this.noise(.065, .015, 1500);
+    this.tone(175, .11, 'triangle', .025, 170);
+  }
+  land(heavy=false) {
+    this.noise(heavy ? .13 : .09, heavy ? .04 : .025, 260);
+    this.tone(heavy ? 58 : 74, heavy ? .16 : .11, 'sine', heavy ? .055 : .032, -18);
+  }
+  pickup() {
+    this.tone(520, .08, 'sine', .03, 280);
+    this.tone(780, .12, 'sine', .025, 220, .06);
+  }
+  ko() {
+    this.noise(.2, .055, 420);
+    this.tone(105, .34, 'sawtooth', .075, -65);
+  }
 }
 const audio = new AudioEngine();
 
@@ -55,24 +144,64 @@ addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 
 function bindButton(id, prop) {
   const el = document.getElementById(id);
-  const set = v => { input[prop] = v; el.classList.toggle('active', v); if (v) audio.init(); };
-  el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture(e.pointerId); set(true); });
-  ['pointerup','pointercancel','pointerleave'].forEach(ev => el.addEventListener(ev, () => set(false)));
+  const set = value => {
+    input[prop] = value;
+    el.classList.toggle('active', value);
+    if (value) audio.init();
+  };
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    set(true);
+  });
+  ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(eventName => {
+    el.addEventListener(eventName, () => set(false));
+  });
 }
-bindButton('btn-punch','punch'); bindButton('btn-kick','kick'); bindButton('btn-jump','jump'); bindButton('btn-special','special');
+bindButton('btn-punch','punch');
+bindButton('btn-kick','kick');
+bindButton('btn-jump','jump');
+bindButton('btn-special','special');
 
-const joy = document.getElementById('joystick'), stick = document.getElementById('stick');
+const joy = document.getElementById('joystick');
+const stick = document.getElementById('stick');
 let joyPointer = null;
 function moveJoy(e) {
-  const r = joy.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
-  let dx = e.clientX - cx, dy = e.clientY - cy; const max = r.width*.29, len = Math.hypot(dx,dy) || 1;
-  if (len > max) { dx = dx/len*max; dy = dy/len*max; }
-  input.x = dx/max; input.y = dy/max; stick.style.transform = `translate3d(${dx}px,${dy}px,0)`;
+  const rect = joy.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  let dx = e.clientX - centerX;
+  let dy = e.clientY - centerY;
+  const max = rect.width * .29;
+  const length = Math.hypot(dx, dy) || 1;
+  if (length > max) {
+    dx = dx / length * max;
+    dy = dy / length * max;
+  }
+  input.x = dx / max;
+  input.y = dy / max;
+  stick.style.transform = `translate3d(${dx}px,${dy}px,0)`;
 }
-joy.addEventListener('pointerdown', e => { joyPointer=e.pointerId; joy.setPointerCapture(e.pointerId); audio.init(); moveJoy(e); });
-joy.addEventListener('pointermove', e => { if(e.pointerId===joyPointer) moveJoy(e); });
-function releaseJoy(e){ if(e.pointerId!==joyPointer) return; joyPointer=null; input.x=input.y=0; stick.style.transform='translate3d(0,0,0)'; }
-joy.addEventListener('pointerup',releaseJoy); joy.addEventListener('pointercancel',releaseJoy);
+joy.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  joyPointer = e.pointerId;
+  joy.setPointerCapture(e.pointerId);
+  audio.init();
+  moveJoy(e);
+});
+joy.addEventListener('pointermove', e => {
+  if (e.pointerId === joyPointer) moveJoy(e);
+});
+function releaseJoy(e) {
+  if (e.pointerId !== joyPointer) return;
+  joyPointer = null;
+  input.x = 0;
+  input.y = 0;
+  stick.style.transform = 'translate3d(0,0,0)';
+}
+joy.addEventListener('pointerup', releaseJoy);
+joy.addEventListener('pointercancel', releaseJoy);
+joy.addEventListener('lostpointercapture', releaseJoy);
 
 const stages = [
   { name:'Neon Market', subtitle:'Jalan Tengah, 11:47 PM', sky:['#151a45','#7b2558','#ff7a5c'], ground:'#263043', accent:'#55f4ff', boss:'Chrome Tiger', bossType:'tiger', waves:[['brawler','brawler','kicker'],['knife','brawler','heavy'],['kicker','knife','knife','heavy']] },
