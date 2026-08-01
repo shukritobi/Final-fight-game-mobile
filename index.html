@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#090b16" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Neon Brawl: Streets of KL</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="game" aria-label="Neon Brawl game canvas"></canvas>
+    <div id="vignette"></div><div id="scanlines"></div>
+    <section id="hud">
+      <div class="topbar">
+        <div class="player-card">
+          <div class="name-row"><span>Rafi</span><span id="lives">× 3</span></div>
+          <div class="meter"><div class="fill" id="health-fill"></div></div>
+          <div class="meter"><div class="fill energy" id="energy-fill"></div></div>
+          <div id="score">SCORE 000000</div>
+        </div>
+        <div class="boss-card" id="boss-card">
+          <div class="name-row"><span id="boss-name">Boss</span><span>Threat</span></div>
+          <div class="meter"><div class="fill" id="boss-fill"></div></div>
+        </div>
+      </div>
+      <div id="objective">Clear the street</div>
+      <div id="combo"><strong>3</strong><span>HIT COMBO</span></div>
+      <div id="stage-label"><small>Stage 1</small><strong>Neon Market</strong></div>
+    </section>
+    <section id="controls" aria-label="Touch controls">
+      <div class="joystick" id="joystick"><div class="stick" id="stick"></div></div>
+      <div class="buttons">
+        <button class="action" id="btn-punch" aria-label="Punch">PUNCH</button>
+        <button class="action" id="btn-kick" aria-label="Kick">KICK</button>
+        <button class="action" id="btn-jump" aria-label="Jump">JUMP</button>
+        <button class="action" id="btn-special" aria-label="Special attack">SPECIAL</button>
+      </div>
+      <button id="pause" aria-label="Pause">Ⅱ</button>
+    </section>
+    <div id="toast">Weapon acquired</div>
+    <section id="overlay">
+      <div class="panel">
+        <div class="eyebrow">A mobile arcade beat 'em up</div>
+        <h1>Neon Brawl<span>Streets of KL</span></h1>
+        <p>Fight through neon markets, monsoon backstreets and a rooftop fortress. Chain punches, launch kicks, grab weapons and defeat three bosses.</p>
+        <button class="start" id="start">Start fighting</button>
+        <div class="tips"><span>Move: D-pad / WASD</span><span>Attack: J K L I</span><span>Best in landscape</span></div>
+      </div>
+    </section>
+    <div id="rotate"><div><strong>Rotate your phone</strong><span>Landscape mode gives you the full arcade controls.</span></div></div>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
