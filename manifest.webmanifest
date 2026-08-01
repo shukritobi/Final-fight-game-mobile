@@ -1,0 +1,11 @@
+{
+  "name": "Neon Brawl: Streets of KL",
+  "short_name": "Neon Brawl",
+  "description": "A mobile-first arcade beat 'em up built for the browser.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050711",
+  "theme_color": "#090b16",
+  "orientation": "landscape",
+  "icons": []
+}
