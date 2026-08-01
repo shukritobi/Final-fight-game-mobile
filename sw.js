@@ -1,4 +1,4 @@
-const CACHE = 'neon-brawl-v2';
+const CACHE = 'neon-brawl-v3';
 const ASSETS = [
   './',
   './index.html',
