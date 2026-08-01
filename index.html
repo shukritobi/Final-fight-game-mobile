@@ -31,6 +31,7 @@
       <div id="combo"><strong>3</strong><span>HIT COMBO</span></div>
       <div id="stage-label"><small>Stage 1</small><strong>Neon Market</strong></div>
     </section>
+
     <section id="controls" aria-label="Touch controls">
       <div class="joystick" id="joystick"><div class="stick" id="stick"></div></div>
       <div class="buttons">
@@ -41,14 +42,23 @@
       </div>
       <button id="pause" aria-label="Pause">Ⅱ</button>
     </section>
-    <div id="toast">Weapon acquired</div>
+
+    <div id="toast">Progress saved</div>
     <section id="overlay">
       <div class="panel">
         <div class="eyebrow">A mobile arcade beat 'em up</div>
         <h1>Neon Brawl<span>Streets of KL</span></h1>
-        <p>Fight through neon markets, monsoon backstreets and a rooftop fortress. Jump plus kick launches a flying kick. Jump plus punch performs a rising uppercut.</p>
-        <button class="start" id="start">Start fighting</button>
-        <div class="tips"><span>Move: D-pad / WASD</span><span>Jump + Punch: Uppercut</span><span>Jump + Kick: Flying Kick</span></div>
+        <p>Fight through neon markets, monsoon backstreets and a rooftop fortress. Chain martial-arts combos, use weapons and defeat three bosses.</p>
+        <div class="menu-actions">
+          <button class="start" id="start">New game</button>
+          <button class="continue" id="continue" hidden>Continue</button>
+        </div>
+        <div class="tips">
+          <span>Punch repeatedly: jab, cross, hook, heavy</span>
+          <span>Kick repeatedly: kick, roundhouse, axe kick</span>
+          <span>Left, right + kick: twist kick</span>
+          <span>Jump + punch/kick: uppercut/flying kick</span>
+        </div>
       </div>
     </section>
     <div id="rotate"><div><strong>Rotate your phone</strong><span>Landscape mode gives you the full arcade controls.</span></div></div>
@@ -57,6 +67,7 @@
   <script src="fighters.js"></script>
   <script src="gameplay.js"></script>
   <script src="scenes.js"></script>
+  <script src="sprites.js"></script>
   <script src="render.js"></script>
 </body>
 </html>
