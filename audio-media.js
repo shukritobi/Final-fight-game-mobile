@@ -10,6 +10,8 @@
   let unlocking = null;
   let music = null;
   let musicWanted = false;
+  const voicePool = [];
+  let voiceIndex = 0;
 
   function clampSample(value) {
     return Math.max(-1, Math.min(1, value));
@@ -165,6 +167,11 @@
 
   buildClips();
   buildMusic();
+  for (let index = 0; index < 10; index++) {
+    const voice = new Audio(clips.get('unlock').element.src);
+    voice.preload = 'auto';
+    voicePool.push(voice);
+  }
 
   function playClip(name, volume = 1, rate = 1) {
     if (!audio.enabled) return;
@@ -172,7 +179,10 @@
     if (!clip) return;
 
     const play = () => {
-      const instance = clip.element.cloneNode(true);
+      const instance = voicePool[voiceIndex++ % voicePool.length];
+      instance.pause();
+      instance.src = clip.element.src;
+      instance.currentTime = 0;
       instance.volume = Math.max(0, Math.min(1, clip.volume * volume));
       instance.playbackRate = rate;
       const promise = instance.play();
@@ -213,21 +223,32 @@
     }
     if (unlocking) return unlocking;
 
-    const probe = clips.get('unlock').element.cloneNode(true);
-    probe.volume = .42;
-    const playPromise = probe.play();
-    unlocking = Promise.resolve(playPromise)
-      .then(() => {
-        unlocked = true;
-        flushPending();
-        syncMusic();
+    const unlockSource = clips.get('unlock').element.src;
+    const attempts = voicePool.map((voice, index) => {
+      voice.src = unlockSource;
+      voice.currentTime = 0;
+      voice.volume = index === 0 ? .42 : .001;
+      return Promise.resolve(voice.play()).then(() => {
+        if (index !== 0) { voice.pause(); voice.currentTime = 0; }
+      });
+    });
+
+    music.volume = .001;
+    attempts.push(Promise.resolve(music.play()).then(() => {
+      music.pause();
+      music.currentTime = 0;
+      music.volume = .28;
+    }));
+
+    unlocking = Promise.allSettled(attempts)
+      .then((results) => {
+        unlocked = results.some((result) => result.status === 'fulfilled');
+        if (unlocked) {
+          flushPending();
+          syncMusic();
+        }
         updateButton();
-        return true;
-      })
-      .catch(() => {
-        unlocked = false;
-        updateButton();
-        return false;
+        return unlocked;
       })
       .finally(() => { unlocking = null; });
     return unlocking;
