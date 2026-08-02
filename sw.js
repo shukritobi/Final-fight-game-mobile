@@ -1,4 +1,4 @@
-const CACHE='neon-brawl-v9';
+const CACHE='neon-brawl-v10';
 const ASSETS=[
   './','./index.html','./styles.css','./polish.css','./game-polish-v2.css','./core.js','./audio-media.js','./fighters.js','./gameplay.js',
   './scenes.js','./sprites.js','./art-backgrounds.js','./art-sprites.js','./enhancements.js','./game-polish-v2.js','./render.js','./manifest.webmanifest'
