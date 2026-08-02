@@ -6,8 +6,19 @@
   const atlasImage = new Image();
   bgImage.decoding = 'async';
   atlasImage.decoding = 'async';
-  bgImage.src = './assets/stage-reference.png';
-  atlasImage.src = './assets/fighter-atlas.jpg';
+
+  function loadWithFallback(image, localSource, remoteSource) {
+    let usingRemote = false;
+    image.addEventListener('error', () => {
+      if (usingRemote) return;
+      usingRemote = true;
+      image.src = remoteSource;
+    });
+    image.src = localSource;
+  }
+
+  loadWithFallback(bgImage, './assets/stage-reference.png', 'https://at.adobe.com/jg1KIANaogevi36v');
+  loadWithFallback(atlasImage, './assets/fighter-atlas.jpg', 'https://at.adobe.com/54DJBFBU2flCcOmz');
 
   const BG_W = 640;
   const BG_H = 360;
