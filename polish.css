@@ -1,0 +1,49 @@
+/* Lightweight mobile control and raster-art polish */
+.joystick {
+  width:132px;
+  height:132px;
+  border-color:rgba(190,235,255,.22);
+  background:radial-gradient(circle,rgba(100,150,205,.035) 0 34%,rgba(12,22,45,.12) 35% 64%,rgba(3,7,18,.22) 65%);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.16),0 5px 18px rgba(0,0,0,.12),0 0 12px rgba(80,230,255,.055);
+  backdrop-filter:blur(1.5px);
+  -webkit-backdrop-filter:blur(1.5px);
+}
+.joystick::before,.joystick::after {
+  background:rgba(235,249,255,.075);
+}
+.stick {
+  width:60px;
+  height:60px;
+  left:36px;
+  top:36px;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.15),rgba(55,95,145,.27) 48%,rgba(7,13,29,.34));
+  border-color:rgba(120,241,255,.26);
+  box-shadow:0 4px 13px rgba(0,0,0,.16),0 0 12px rgba(86,243,255,.08);
+}
+.action {
+  border-color:rgba(255,255,255,.21);
+  box-shadow:inset 0 1px rgba(255,255,255,.13),inset 0 -3px rgba(0,0,0,.08),0 4px 13px rgba(0,0,0,.12);
+  backdrop-filter:blur(2px) saturate(1.1);
+  -webkit-backdrop-filter:blur(2px) saturate(1.1);
+  transition:transform .035s linear,filter .035s linear;
+}
+.action::after { border-color:rgba(255,255,255,.07); }
+.action:active,.action.active { transform:scale(.86); filter:brightness(1.48) saturate(1.25); }
+#btn-punch { background:linear-gradient(145deg,rgba(255,75,115,.31),rgba(100,5,45,.23)); }
+#btn-kick { background:linear-gradient(145deg,rgba(255,168,50,.31),rgba(105,43,0,.22)); }
+#btn-jump { background:linear-gradient(145deg,rgba(65,220,255,.29),rgba(0,74,132,.21)); }
+#btn-special { background:linear-gradient(145deg,rgba(182,105,255,.3),rgba(52,20,128,.22)); }
+#pause {
+  background:rgba(5,9,22,.25);
+  border-color:rgba(255,255,255,.14);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+canvas { image-rendering:pixelated; image-rendering:crisp-edges; }
+#scanlines { opacity:.045; }
+#vignette { opacity:.78; }
+
+@media (max-height:520px) {
+  .joystick { width:112px; height:112px; }
+  .stick { width:52px; height:52px; left:30px; top:30px; }
+}
