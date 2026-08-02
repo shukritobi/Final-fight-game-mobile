@@ -1,7 +1,7 @@
-const CACHE='neon-brawl-v8';
+const CACHE='neon-brawl-v9';
 const ASSETS=[
-  './','./index.html','./styles.css','./polish.css','./audio-fix.css','./core.js','./audio-fix.js','./fighters.js','./gameplay.js',
-  './scenes.js','./sprites.js','./art-backgrounds.js','./art-sprites.js','./enhancements.js','./render.js','./manifest.webmanifest'
+  './','./index.html','./styles.css','./polish.css','./game-polish-v2.css','./core.js','./audio-media.js','./fighters.js','./gameplay.js',
+  './scenes.js','./sprites.js','./art-backgrounds.js','./art-sprites.js','./enhancements.js','./game-polish-v2.js','./render.js','./manifest.webmanifest'
 ];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
