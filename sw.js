@@ -1,6 +1,7 @@
-const CACHE='neon-brawl-v5';
+const CACHE='neon-brawl-v6';
 const ASSETS=[
-  './','./index.html','./styles.css','./core.js','./fighters.js','./gameplay.js','./scenes.js','./sprites.js','./render.js','./manifest.webmanifest'
+  './','./index.html','./styles.css','./polish.css','./core.js','./fighters.js','./gameplay.js',
+  './scenes.js','./sprites.js','./art-backgrounds.js','./art-sprites.js','./enhancements.js','./render.js','./manifest.webmanifest'
 ];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
@@ -13,6 +14,8 @@ self.addEventListener('activate',event=>{
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET') return;
   event.respondWith(fetch(event.request).then(response=>{
-    const clone=response.clone(); caches.open(CACHE).then(cache=>cache.put(event.request,clone)); return response;
+    const clone=response.clone();
+    caches.open(CACHE).then(cache=>cache.put(event.request,clone));
+    return response;
   }).catch(()=>caches.match(event.request).then(cached=>cached||caches.match('./index.html'))));
 });
