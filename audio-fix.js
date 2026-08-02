@@ -171,24 +171,23 @@
     updateSoundButton();
   }
 
-  soundButton.addEventListener('pointerdown', event => {
-    event.preventDefault();
-    event.stopPropagation();
-  });
-
   soundButton.addEventListener('click', async event => {
     event.preventDefault();
     event.stopPropagation();
-    audio.enabled = !audio.enabled;
 
-    if (audio.enabled) {
-      const ready = await audio.init();
-      if (ready) {
-        audio.tone(440, .07, 'square', .035, 150);
-        audio.tone(690, .1, 'triangle', .028, 180, .055);
-      }
-    } else {
+    const alreadyReady = audio.enabled && audio.ctx?.state === 'running';
+    if (alreadyReady) {
+      audio.enabled = false;
       audio.pending.length = 0;
+      updateSoundButton();
+      return;
+    }
+
+    audio.enabled = true;
+    const ready = await audio.init();
+    if (ready) {
+      audio.tone(440, .07, 'square', .035, 150);
+      audio.tone(690, .1, 'triangle', .028, 180, .055);
     }
     updateSoundButton();
   });
