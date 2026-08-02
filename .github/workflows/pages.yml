@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -23,6 +23,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Materialize static raster art
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          if [ ! -s assets/stage-reference.png ]; then
+            curl -L --fail --retry 4 --retry-delay 2 \
+              'https://at.adobe.com/jg1KIANaogevi36v' \
+              -o assets/stage-reference.png
+          fi
+          if [ ! -s assets/fighter-atlas.jpg ]; then
+            curl -L --fail --retry 4 --retry-delay 2 \
+              'https://at.adobe.com/54DJBFBU2flCcOmz' \
+              -o assets/fighter-atlas.jpg
+          fi
+          test "$(stat -c%s assets/stage-reference.png)" -gt 100000
+          test "$(stat -c%s assets/fighter-atlas.jpg)" -gt 100000
+
+      - name: Store art in repository
+        shell: bash
+        run: |
+          if ! git diff --quiet -- assets/; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add assets/stage-reference.png assets/fighter-atlas.jpg
+            git commit -m 'Add prebuilt raster game art [skip ci]'
+            git push
+          fi
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
