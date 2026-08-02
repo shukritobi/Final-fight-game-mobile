@@ -106,8 +106,8 @@
       context.save();
       if (stage === 1) context.filter = 'brightness(.68) saturate(.86) hue-rotate(18deg)';
       if (stage === 2) context.filter = 'brightness(.62) saturate(1.06) hue-rotate(295deg)';
-      const sourceY = stage === 2 ? 86 : 138;
-      const sourceHeight = stage === 2 ? 360 : 368;
+      const sourceY = 145;
+      const sourceHeight = 235;
       context.drawImage(
         bgImage,
         0, sourceY, bgImage.naturalWidth, sourceHeight,
@@ -229,7 +229,8 @@
 
     context.save();
     context.beginPath();
-    context.roundRect(2, 1, 108, 168, 22);
+    if (typeof context.roundRect === 'function') context.roundRect(2, 1, 108, 168, 22);
+    else context.rect(2, 1, 108, 168);
     context.clip();
     context.fillStyle = '#101722';
     context.fillRect(0, 0, 112, 172);
