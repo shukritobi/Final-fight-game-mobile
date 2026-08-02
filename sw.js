@@ -1,7 +1,7 @@
-const CACHE='neon-brawl-v11';
+const CACHE='neon-brawl-v12';
 const ASSETS=[
   './','./index.html','./styles.css','./polish.css','./game-polish-v2.css','./performance.css',
-  './core.js','./audio-media.js','./fighters.js','./gameplay.js','./scenes.js','./sprites.js',
+  './core.js','./audio-lite.js','./fighters.js','./gameplay.js','./scenes.js','./sprites.js',
   './art-backgrounds.js','./art-sprites.js','./enhancements.js','./game-polish-v2.js','./performance.js','./render.js','./manifest.webmanifest'
 ];
 self.addEventListener('install',event=>{
