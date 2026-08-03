@@ -1,0 +1,75 @@
+/* Final raster arcade presentation. Keep mobile compositing inexpensive. */
+#game {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #070b14;
+}
+
+#scanlines { opacity: .10 !important; background-size: 100% 5px !important; }
+#vignette { opacity: .22 !important; }
+
+#controls { contain: layout paint; }
+#controls .joystick {
+  width: min(20vw, 220px);
+  height: min(20vw, 220px);
+  opacity: .38;
+  background: rgba(4,13,26,.18) !important;
+  border: 2px solid rgba(137,222,255,.30) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+#controls .joystick .stick {
+  width: 42%; height: 42%;
+  background: rgba(80,200,238,.12) !important;
+  border: 2px solid rgba(109,221,255,.48) !important;
+  box-shadow: none !important;
+}
+#controls .buttons { opacity: .55; }
+#controls .action {
+  background: rgba(8,14,28,.24) !important;
+  border: 2px solid rgba(255,255,255,.27) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  text-shadow: 0 2px 2px rgba(0,0,0,.9);
+}
+#controls .action.active,
+#controls .action:active {
+  opacity: 1;
+  transform: scale(.94);
+  background: rgba(255,255,255,.20) !important;
+}
+#pause {
+  opacity: .48;
+  background: rgba(6,11,23,.32) !important;
+  border-color: rgba(255,255,255,.24) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.player-card, .boss-card {
+  background: rgba(5,10,26,.74) !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 4px 0 rgba(0,0,0,.28) !important;
+}
+
+.menu-actions button:disabled {
+  opacity: .55;
+  cursor: wait;
+  filter: grayscale(.35);
+}
+
+@media (pointer: coarse) {
+  #scanlines { display:none !important; }
+  #vignette { opacity:.14 !important; }
+  .player-card { transform: scale(.88); transform-origin: top left; }
+  .boss-card { transform: scale(.88); transform-origin: top right; }
+  #controls .buttons { opacity:.48; }
+  #controls .joystick { opacity:.32; }
+}
+
+@media (max-height: 520px) {
+  #controls .joystick { width: 180px; height: 180px; }
+  #controls .action { transform: scale(.88); }
+  #controls .action.active, #controls .action:active { transform: scale(.82); }
+}
