@@ -28,19 +28,52 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p assets
+          mkdir -p assets assets/sprites
+
           if [ ! -s assets/stage-reference.png ]; then
             curl -L --fail --retry 4 --retry-delay 2 \
               'https://at.adobe.com/jg1KIANaogevi36v' \
               -o assets/stage-reference.png
           fi
+
           if [ ! -s assets/fighter-atlas.jpg ]; then
             curl -L --fail --retry 4 --retry-delay 2 \
               'https://at.adobe.com/54DJBFBU2flCcOmz' \
               -o assets/fighter-atlas.jpg
           fi
+
+          curl -L --fail --retry 4 --retry-delay 2 \
+            'https://at.adobe.com/QN8LFSTodyqFX1JJ' \
+            -o /tmp/rafi-source.png
+
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+
+          source = Image.open('/tmp/rafi-source.png').convert('RGBA')
+          if source.size != (768, 1120):
+              raise SystemExit(f'Unexpected source sprite size: {source.size}')
+
+          target = source.resize((384, 560), Image.Resampling.LANCZOS)
+          pixels = target.load()
+          for y in range(target.height):
+              for x in range(target.width):
+                  r, g, b, a = pixels[x, y]
+                  if a == 0:
+                      pixels[x, y] = (0, 0, 0, 0)
+
+          target.save('assets/sprites/rafi.png', optimize=True)
+          target.save('assets/sprites/rafi.webp', 'WEBP', lossless=True, method=6)
+
+          for path in ('assets/sprites/rafi.png', 'assets/sprites/rafi.webp'):
+              if Path(path).stat().st_size < 150000:
+                  raise SystemExit(f'Sprite output too small: {path}')
+          PY
+
           test "$(stat -c%s assets/stage-reference.png)" -gt 100000
           test "$(stat -c%s assets/fighter-atlas.jpg)" -gt 100000
+          test "$(stat -c%s assets/sprites/rafi.png)" -gt 150000
 
       - name: Store art in repository
         shell: bash
@@ -48,8 +81,8 @@ jobs:
           if [ -n "$(git status --porcelain -- assets/)" ]; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add assets/stage-reference.png assets/fighter-atlas.jpg
-            git commit -m 'Add prebuilt raster game art [skip ci]'
+            git add assets/stage-reference.png assets/fighter-atlas.jpg assets/sprites/rafi.png assets/sprites/rafi.webp
+            git commit -m 'Repair transparent fighter sprite assets [skip ci]'
             git push
           fi
 
