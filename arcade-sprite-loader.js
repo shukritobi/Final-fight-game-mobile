@@ -3,7 +3,9 @@
 (() => {
   const FRAME_W = 96;
   const FRAME_H = 112;
-  const SPRITE_URL = './assets/sprites/rafi.webp?v=arcade2';
+  const EXPECTED_W = 384;
+  const EXPECTED_H = 560;
+  const SPRITE_URL = './assets/sprites/rafi.png?v=arcade3';
   const sprite = new Image();
   sprite.decoding = 'async';
   const frameCache = new Map();
@@ -83,6 +85,7 @@
     surface.height = FRAME_H;
     const context = surface.getContext('2d', { alpha:true, desynchronized:true });
     context.imageSmoothingEnabled = true;
+    context.clearRect(0, 0, FRAME_W, FRAME_H);
     context.drawImage(sprite, col * FRAME_W, row * FRAME_H, FRAME_W, FRAME_H, 0, 0, FRAME_W, FRAME_H);
 
     const tint = palettes[type];
@@ -100,7 +103,7 @@
   }
 
   function draw(actor) {
-    if (!sprite.complete || !sprite.naturalWidth) return;
+    if (!window.NEON_SPRITE_READY) return;
     const type = keyFor(actor);
     const state = stateFor(actor);
     const frames = framesFor(actor, state);
@@ -137,35 +140,33 @@
     if (typeof updateContinueButton === 'function') updateContinueButton();
   }
 
-  sprite.addEventListener('load', () => {
-    frameCache.clear();
-    if (window.ArcadeArt) {
-      Object.keys(window.ArcadeArt.sheets || {}).forEach(key => {
-        window.ArcadeArt.sheets[key].x = 0;
-        window.ArcadeArt.sheets[key].y = 0;
-      });
-      if (window.ArcadeArt.atlas && window.ArcadeArt.atlas.src !== sprite.src) {
-        window.ArcadeArt.atlas.src = sprite.src;
-      }
-    }
-    window.spriteRenderer = { draw };
-    window.NEON_SPRITE_READY = true;
-    unlockMenu();
-  }, { once:true });
-
-  sprite.addEventListener('error', () => {
-    if (!retried) {
-      retried = true;
-      sprite.src = `./assets/sprites/rafi.webp?v=arcade2-retry-${Date.now()}`;
+  function acceptSprite() {
+    if (sprite.naturalWidth !== EXPECTED_W || sprite.naturalHeight !== EXPECTED_H) {
+      console.error(`Wrong sprite dimensions: ${sprite.naturalWidth}x${sprite.naturalHeight}, expected ${EXPECTED_W}x${EXPECTED_H}`);
+      retrySprite();
       return;
     }
-    console.error('Clean fighter sprite sheet failed to load after retry.');
-    if (ui.start) {
-      ui.start.disabled = false;
-      ui.start.textContent = 'New game';
-    }
-  });
 
+    frameCache.clear();
+    window.spriteRenderer = { draw };
+    window.NEON_SPRITE_READY = true;
+    if (window.ArcadeArt?.atlas && window.ArcadeArt.atlas.src !== sprite.src) {
+      window.ArcadeArt.atlas.src = sprite.src;
+    }
+    unlockMenu();
+  }
+
+  function retrySprite() {
+    if (!retried) {
+      retried = true;
+      sprite.src = `./assets/sprites/rafi.png?v=arcade3-retry-${Date.now()}`;
+      return;
+    }
+    window.NEON_SPRITE_READY = false;
+    console.error('Clean fighter sprite sheet failed validation after retry.');
+  }
+
+  sprite.addEventListener('load', acceptSprite);
+  sprite.addEventListener('error', retrySprite);
   sprite.src = SPRITE_URL;
-  if (window.ArcadeArt?.atlas) window.ArcadeArt.atlas.src = SPRITE_URL;
 })();
