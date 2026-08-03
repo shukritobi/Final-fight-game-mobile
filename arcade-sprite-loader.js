@@ -3,9 +3,11 @@
 (() => {
   const FRAME_W = 96;
   const FRAME_H = 112;
+  const SPRITE_URL = './assets/sprites/rafi.webp?v=arcade2';
   const sprite = new Image();
   sprite.decoding = 'async';
   const frameCache = new Map();
+  let retried = false;
 
   const palettes = {
     player: null,
@@ -125,6 +127,16 @@
     ctx.restore();
   }
 
+  function unlockMenu() {
+    document.body.classList.add('clean-sprites-ready', 'arcade-art-ready');
+    if (ui.start) {
+      ui.start.disabled = false;
+      ui.start.textContent = 'New game';
+    }
+    if (ui.continue) ui.continue.disabled = false;
+    if (typeof updateContinueButton === 'function') updateContinueButton();
+  }
+
   sprite.addEventListener('load', () => {
     frameCache.clear();
     if (window.ArcadeArt) {
@@ -132,15 +144,28 @@
         window.ArcadeArt.sheets[key].x = 0;
         window.ArcadeArt.sheets[key].y = 0;
       });
+      if (window.ArcadeArt.atlas && window.ArcadeArt.atlas.src !== sprite.src) {
+        window.ArcadeArt.atlas.src = sprite.src;
+      }
     }
     window.spriteRenderer = { draw };
-    document.body.classList.add('clean-sprites-ready');
+    window.NEON_SPRITE_READY = true;
+    unlockMenu();
   }, { once:true });
 
   sprite.addEventListener('error', () => {
-    console.error('Clean fighter sprite sheet failed to load.');
-  }, { once:true });
+    if (!retried) {
+      retried = true;
+      sprite.src = `./assets/sprites/rafi.webp?v=arcade2-retry-${Date.now()}`;
+      return;
+    }
+    console.error('Clean fighter sprite sheet failed to load after retry.');
+    if (ui.start) {
+      ui.start.disabled = false;
+      ui.start.textContent = 'New game';
+    }
+  });
 
-  sprite.src = './assets/sprites/rafi.webp?v=final1';
-  if (window.ArcadeArt?.atlas) window.ArcadeArt.atlas.src = sprite.src;
+  sprite.src = SPRITE_URL;
+  if (window.ArcadeArt?.atlas) window.ArcadeArt.atlas.src = SPRITE_URL;
 })();
